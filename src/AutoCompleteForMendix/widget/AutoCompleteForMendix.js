@@ -270,8 +270,12 @@ define( [
                 }
 
                 // run the OC microflow if one has been configured.                   
-                if( self.onChangeMicroflow ) {
+                if(self.onChangeType === "callMicroflow"){
+                    if( self.onChangeMicroflow ) 
                     self._execMf(self._contextObj.getGuid(), self.onChangeMicroflow, null, self.onChangeMicroflowShowProgress, self.onChangeMicroflowProgressMessage);
+                }else{
+                    if( self.onChangeNanoflow ) 
+                        self._execNf(self.onChangeNanoflow,self._contextObj, self.onChangeMicroflowProgressMessage);   
                 }
             })
             .on("select2:unselect", function(e) {
@@ -283,9 +287,13 @@ define( [
                 }
 
                 // run the OC microflow if one has been configured.                   
-                if( self.onChangeMicroflow ) {
-                    self._execMf(self._contextObj.getGuid(), self.onChangeMicroflow, null, self.onChangeMicroflowShowProgress, self.onChangeMicroflowProgressMessage);
-                }
+                if(self.onChangeType === "callMicroflow"){
+                    if( self.onChangeMicroflow ) 
+                        self._execMf(self._contextObj.getGuid(), self.onChangeMicroflow, null, self.onChangeMicroflowShowProgress, self.onChangeMicroflowProgressMessage);
+                }else{
+                    if( self.onChangeNanoflow ) 
+                        self._execNf(self.onChangeNanoflow,self._contextObj, self.onChangeMicroflowProgressMessage);                   
+            }   
             })
             .on("select2:closing",function(e){
                 self._$combo.select2('focus');                
@@ -1073,9 +1081,28 @@ define( [
                     options.progressMsg = message;
                 }
 
-                //mx.ui.action(mf,options, this);
-                mx.data.action(options);
+                mx.ui.action(mf,options, this);
+                //mx.data.action(options);
             }
+        },
+
+        _execNf: function(nf,obj,cb){
+            const context = new mendix.lib.MxContext();
+            context.setTrackObject(obj);
+
+            mx.data.callNanoflow({
+                nanoflow: nf,
+                origin: this.mxform,
+                context: context,
+                callback: function(result) {
+                    if (cb) {
+                        cb(result);
+                    }
+                },
+                error: function(error) {
+                    logger.error('Error running Nanoflow: ' + e);
+                }
+            });   
         }
         /* CUSTOM FUNCTIONS END HERE */
     });
